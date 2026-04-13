@@ -71,6 +71,7 @@ async function checkProvider(provider) {
     });
 
     const latency = Date.now() - start;
+    const data = await response.json();
 
     if (!response.ok) {
       return {
@@ -80,8 +81,6 @@ async function checkProvider(provider) {
         error: `HTTP ${response.status}`
       };
     }
-
-    await response.json();
 
     return {
       provider: provider.name,
@@ -103,5 +102,31 @@ const results = await Promise.all(
   providers.map(checkProvider)
 );
 
-console.log(results);
+displayResult(results);
 
+
+function displayResult(results) {
+  console.log('\n🔍 Vérification des connexions API...\n');
+
+  let success = 0;
+
+  for (const r of results) {
+    const ok = r.status === 'OK';
+
+    if (ok) success++;
+
+    const icon = ok ? '✅' : '❌';
+
+    console.log(
+      `${icon} ${r.provider.padEnd(15)} ${r.latency}ms`
+    );
+  }
+
+  console.log(`\n${success}/${results.length} connexions actives\n`);
+
+  if (success === results.length) {
+    console.log('Tout est vert. Vous êtes prêts pour la suite !');
+  } else {
+    console.log('Certaines connexions sont en erreur.');
+  }
+}
