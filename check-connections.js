@@ -17,3 +17,91 @@ function checkEnv() {
 }
 
 checkEnv();
+
+
+
+const providers = [
+  {
+    name: 'Mistral',
+    url: 'https://api.mistral.ai/v1/chat/completions',
+    key: process.env.MISTRAL_API_KEY,
+    body: (model) => ({
+      model,
+      messages: [{ role: 'user', content: 'ping' }],
+      max_tokens: 5
+    })
+  },
+  {
+    name: 'Groq',
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    key: process.env.GROQ_API_KEY,
+    model: 'llama-3.3-70b-versatile',
+    body: (model) => ({
+      model,
+      messages: [{ role: 'user', content: 'ping' }],
+      max_tokens: 5
+    })
+  },
+  {
+    name: 'HuggingFace',
+    url: 'https://router.huggingface.co/v1/chat/completions',
+    key: process.env.HF_API_KEY,
+    model: 'meta-llama/Llama-3.1-8B-Instruct',
+    body: (model) => ({
+      model,
+      messages: [
+      { role: 'user', content: 'ping' }
+    ],
+    max_tokens: 5
+  })
+}
+];
+
+async function checkProvider(provider) {
+  const start = Date.now();
+
+  try {
+    const response = await fetch(provider.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${provider.key}`
+      },
+      body: JSON.stringify(provider.body(provider.model || 'mistral-small-latest'))
+    });
+
+    const latency = Date.now() - start;
+
+    if (!response.ok) {
+      return {
+        provider: provider.name,
+        status: 'ERROR',
+        latency,
+        error: `HTTP ${response.status}`
+      };
+    }
+
+    await response.json();
+
+    return {
+      provider: provider.name,
+      status: 'OK',
+      latency
+    };
+
+  } catch (error) {
+    return {
+      provider: provider.name,
+      status: 'ERROR',
+      latency: Date.now() - start,
+      error: error.message
+    };
+  }
+}
+
+const results = await Promise.all(
+  providers.map(checkProvider)
+);
+
+console.log(results);
+
