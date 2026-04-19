@@ -4,7 +4,8 @@ function checkEnv() {
   const keys = [
     'MISTRAL_API_KEY',
     'GROQ_API_KEY',
-    'HF_API_KEY'
+    'HF_API_KEY',
+    'PINECONE_API_KEY'
   ];
 
   keys.forEach((key) => {
@@ -19,6 +20,12 @@ function checkEnv() {
 checkEnv();
 
 
+const VERBOSE = process.argv.includes('--verbose');
+
+const TEST_PROMPT = VERBOSE
+  ? "Donne-moi la capitale de la France en un mot."
+  : "ping";
+
 
 const providers = [
   {
@@ -27,7 +34,7 @@ const providers = [
     key: process.env.MISTRAL_API_KEY,
     body: (model) => ({
       model,
-      messages: [{ role: 'user', content: 'ping' }],
+      messages: [{ role: 'user', content: TEST_PROMPT }],
       max_tokens: 5
     })
   },
@@ -38,7 +45,7 @@ const providers = [
     model: 'llama-3.3-70b-versatile',
     body: (model) => ({
       model,
-      messages: [{ role: 'user', content: 'ping' }],
+      messages: [{ role: 'user', content: TEST_PROMPT }],
       max_tokens: 5
     })
   },
@@ -50,7 +57,7 @@ const providers = [
     body: (model) => ({
       model,
       messages: [
-      { role: 'user', content: 'ping' }
+      { role: 'user', content: TEST_PROMPT }
     ],
     max_tokens: 5
   })
@@ -71,7 +78,6 @@ async function checkProvider(provider) {
     });
 
     const latency = Date.now() - start;
-    const data = await response.json();
 
     if (!response.ok) {
       return {
@@ -82,11 +88,14 @@ async function checkProvider(provider) {
       };
     }
 
-    return {
-      provider: provider.name,
-      status: 'OK',
-      latency
-    };
+    const data = await response.json();
+
+return {
+  provider: provider.name,
+  status: 'OK',
+  latency,
+  content: data.choices?.[0]?.message?.content
+};
 
   } catch (error) {
     return {
@@ -98,9 +107,60 @@ async function checkProvider(provider) {
   }
 }
 
-const results = await Promise.all(
-  providers.map(checkProvider)
-);
+async function checkPinecone() {
+  const start = Date.now();
+
+  if (!process.env.PINECONE_API_KEY) {
+    return {
+      provider: 'Pinecone',
+      status: 'ERROR',
+      latency: 0,
+      error: 'MISSING_API_KEY'
+    };
+  }
+
+  try {
+    const response = await fetch('https://api.pinecone.io/indexes', {
+      method: 'GET',
+      headers: {
+        'Api-Key': process.env.PINECONE_API_KEY,
+        'X-Pinecone-API-Version': '2024-07'
+      }
+    });
+
+    const latency = Date.now() - start;
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return {
+        provider: 'Pinecone',
+        status: 'ERROR',
+        latency,
+        error: `HTTP_${response.status}`
+      };
+    }
+
+    return {
+      provider: 'Pinecone',
+      status: 'OK',
+      latency,
+      content: `${data?.indexes?.length || 0} indexes`
+    };
+
+  } catch (error) {
+    return {
+      provider: 'Pinecone',
+      status: 'ERROR',
+      latency: Date.now() - start,
+      error: 'NETWORK_ERROR'
+    };
+  }
+}
+
+const results = await Promise.all([
+  ...providers.map(checkProvider),
+  checkPinecone()
+]);
 
 displayResult(results);
 
@@ -115,11 +175,13 @@ function displayResult(results) {
 
     if (ok) success++;
 
-    const icon = ok ? '✅' : '❌';
-
     console.log(
-      `${icon} ${r.provider.padEnd(15)} ${r.latency}ms`
+      ` ${r.provider.padEnd(15)} ${r.latency}ms`
     );
+
+    if (r.content) {
+  console.log(`→ ${r.content}`);
+}
   }
 
   console.log(`\n${success}/${results.length} connexions actives\n`);
@@ -129,4 +191,6 @@ function displayResult(results) {
   } else {
     console.log('Certaines connexions sont en erreur.');
   }
+
+  
 }

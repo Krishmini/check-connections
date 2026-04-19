@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI Dashboard</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    h2 { margin-top: 40px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+
+<body>
+
+<h1> Dashboard IA</h1>
+
+<h2>Connexions API</h2>
+<table>
+<tr><th>Provider</th><th>Status</th><th>Latency</th></tr>
+
+<tr>
+  <td>Mistral</td>
+  <td style="color:#16a34a">OK</td>
+  <td>478 ms</td>
+</tr>
+
+<tr>
+  <td>Groq</td>
+  <td style="color:#16a34a">OK</td>
+  <td>224 ms</td>
+</tr>
+
+<tr>
+  <td>HuggingFace</td>
+  <td style="color:#16a34a">OK</td>
+  <td>401 ms</td>
+</tr>
+
+<tr>
+  <td>Pinecone</td>
+  <td style="color:#16a34a">OK</td>
+  <td>812 ms</td>
+</tr>
+
+</table>
+
+
+<h2>Stress Test</h2>
+<table>
+<tr><th>Provider</th><th>Succès</th><th>Avg</th><th>P95</th></tr>
+
+<tr>
+  <td>Mistral</td>
+  <td>9/10</td>
+  <td>426 ms</td>
+  <td>485 ms</td>
+</tr>
+
+<tr>
+  <td>Groq</td>
+  <td>10/10</td>
+  <td>166 ms</td>
+  <td>191 ms</td>
+</tr>
+
+<tr>
+  <td>HuggingFace</td>
+  <td>10/10</td>
+  <td>358 ms</td>
+  <td>471 ms</td>
+</tr>
+
+</table>
+
+
+<h2>Sensibilité du prompt</h2>
+<table>
+<tr><th>Prompt</th><th>Tokens</th><th>Longueur</th></tr>
+
+<tr>
+  <td>Explique le machine learning</td>
+  <td>220</td>
+  <td>815</td>
+</tr>
+
+<tr>
+  <td>Explique-moi le machine learning</td>
+  <td>0</td>
+  <td>0</td>
+</tr>
+
+<tr>
+  <td>Peux-tu m’expliquer le ML ?</td>
+  <td>225</td>
+  <td>880</td>
+</tr>
+
+<tr>
+  <td>C'est quoi le ML ?</td>
+  <td>222</td>
+  <td>809</td>
+</tr>
+
+<tr>
+  <td>ML : définition et explication</td>
+  <td>221</td>
+  <td>931</td>
+</tr>
+
+</table>
+
+
+<h2>Multi-langue</h2>
+<table>
+<tr><th>Langue</th><th>Input</th><th>Output</th><th>Coût (€)</th></tr>
+
+<tr>
+  <td>Français</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0.00000000€</td>
+</tr>
+
+<tr>
+  <td>English</td>
+  <td>24</td>
+  <td>46</td>
+  <td>0.00001400€</td>
+</tr>
+
+<tr>
+  <td>Español</td>
+  <td>25</td>
+  <td>63</td>
+  <td>0.00001760€</td>
+</tr>
+
+</table>
+
+</body>
+</html>
